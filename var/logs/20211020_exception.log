@@ -1,0 +1,4 @@
+*ERROR* 	v1.7.7.3	2021/10/20 - 02:33:25: No template found for module:modulereference/views/search.tpl at line 68 in file classes/Smarty/TemplateFinder.php
+*ERROR* 	v1.7.7.3	2021/10/20 - 08:22:34: No template found for module:modulereference/views/templates/front/refer.tpl at line 68 in file classes/Smarty/TemplateFinder.php
+*ERROR* 	v1.7.7.3	2021/10/20 - 08:27:50: No template found for module:modulereference/views/templates/hook/refer.tpl at line 67 in file classes/Smarty/TemplateFinder.php
+*ERROR* 	v1.7.7.3	2021/10/20 - 09:04:54: No template found for module:modulereference/views/templates/refer.tpl at line 68 in file classes/Smarty/TemplateFinder.php

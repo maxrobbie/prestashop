@@ -1,0 +1,11 @@
+*ERROR* 	v1.7.7.3	2021/10/21 - 03:10:48: Unknown column &#039;pn.article_number&#039; in &#039;where clause&#039;&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT COUNT(*)
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
+				WHERE 
+ pn.article_number LIKE &#039;%1152316%&#039; LIMIT 1&lt;/pre&gt; at line 769 in file classes/db/Db.php

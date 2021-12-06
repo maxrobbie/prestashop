@@ -1,0 +1,403 @@
+<?php
+
+abstract class ProductListingFrontController extends ProductListingFrontControllerCore
+{
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function prepareMultipleProductsForTemplate(array $products)
+    {
+        return array_map([$this, 'prepareProductForTemplate'], $products);
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getProductSearchContext()
+    {
+        return (new ProductSearchContext())
+            ->setIdShop($this->context->shop->id)
+            ->setIdLang($this->context->language->id)
+            ->setIdCurrency($this->context->currency->id)
+            ->setIdCustomer(
+                $this->context->customer ?
+                    $this->context->customer->id :
+                    null
+            );
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function prepareFacetForTemplate(Facet $facet)
+    {
+        $facetsArray = $facet->toArray();
+        foreach ($facetsArray['filters'] as &$filter) {
+            $filter['facetLabel'] = $facet->getLabel();
+            if ($filter['nextEncodedFacets']) {
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
+                    'q' => $filter['nextEncodedFacets'],
+                    'page' => null,
+                ]);
+            } else {
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
+                    'q' => null,
+                ]);
+            }
+        }
+        unset($filter);
+        return $facetsArray;
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function renderFacets(ProductSearchResult $result)
+    {
+        $facetCollection = $result->getFacetCollection();
+        if (empty($facetCollection)) {
+            return '';
+        }
+        $facetsVar = array_map(
+            [$this, 'prepareFacetForTemplate'],
+            $facetCollection->getFacets()
+        );
+        $activeFilters = [];
+        foreach ($facetsVar as $facet) {
+            foreach ($facet['filters'] as $filter) {
+                if ($filter['active']) {
+                    $activeFilters[] = $filter;
+                }
+            }
+        }
+        return $this->render('catalog/_partials/facets', [
+            'facets' => $facetsVar,
+            'js_enabled' => $this->ajax,
+            'activeFilters' => $activeFilters,
+            'sort_order' => $result->getCurrentSortOrder()->toString(),
+            'clear_all_link' => $this->updateQueryString(['q' => null, 'page' => null]),
+        ]);
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function renderActiveFilters(ProductSearchResult $result)
+    {
+        $facetCollection = $result->getFacetCollection();
+        if (empty($facetCollection)) {
+            return '';
+        }
+        $facetsVar = array_map(
+            [$this, 'prepareFacetForTemplate'],
+            $facetCollection->getFacets()
+        );
+        $activeFilters = [];
+        foreach ($facetsVar as $facet) {
+            foreach ($facet['filters'] as $filter) {
+                if ($filter['active']) {
+                    $activeFilters[] = $filter;
+                }
+            }
+        }
+        return $this->render('catalog/_partials/active_filters', [
+            'activeFilters' => $activeFilters,
+            'clear_all_link' => $this->updateQueryString(['q' => null, 'page' => null]),
+        ]);
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    private function getProductSearchProviderFromModules($query)
+    {
+        $providers = Hook::exec(
+            'productSearchProvider',
+            ['query' => $query],
+            null,
+            true
+        );
+        if (!is_array($providers)) {
+            $providers = [];
+        }
+        foreach ($providers as $provider) {
+            if ($provider instanceof ProductSearchProviderInterface) {
+                return $provider;
+            }
+        }
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getProductSearchVariables()
+    {
+        
+        $context = $this->getProductSearchContext();
+        $query = $this->getProductSearchQuery();
+        $provider = $this->getProductSearchProviderFromModules($query);
+        if (null === $provider) {
+            $provider = $this->getDefaultProductSearchProvider();
+        }
+        $resultsPerPage = (int) Tools::getValue('resultsPerPage');
+        if ($resultsPerPage <= 0) {
+            $resultsPerPage = Configuration::get('PS_PRODUCTS_PER_PAGE');
+        }
+        $query
+            ->setResultsPerPage($resultsPerPage)
+            ->setPage(max((int) Tools::getValue('page'), 1))
+        ;
+        if (($encodedSortOrder = Tools::getValue('order'))) {
+            $query->setSortOrder(SortOrder::newFromString(
+                $encodedSortOrder
+            ));
+        }
+        $encodedFacets = Tools::getValue('q');
+        
+        $query->setEncodedFacets($encodedFacets);
+        
+        $result = $provider->runQuery(
+            $context,
+            $query
+        );
+        if (Configuration::get('PS_CATALOG_MODE') && !Configuration::get('PS_CATALOG_MODE_WITH_PRICES')) {
+            $this->disablePriceControls($result);
+        }
+        if (!$result->getCurrentSortOrder()) {
+            $result->setCurrentSortOrder($query->getSortOrder());
+        }
+        $products = $this->prepareMultipleProductsForTemplate(
+            $result->getProducts()
+        );
+        if ($provider instanceof FacetsRendererInterface) {
+            $rendered_facets = $provider->renderFacets(
+                $context,
+                $result
+            );
+            $rendered_active_filters = $provider->renderActiveFilters(
+                $context,
+                $result
+            );
+        } else {
+            $rendered_facets = $this->renderFacets(
+                $result
+            );
+            $rendered_active_filters = $this->renderActiveFilters(
+                $result
+            );
+        }
+        $pagination = $this->getTemplateVarPagination(
+            $query,
+            $result
+        );
+        $sort_orders = $this->getTemplateVarSortOrders(
+            $result->getAvailableSortOrders(),
+            $query->getSortOrder()->toString()
+        );
+        $sort_selected = false;
+        if (!empty($sort_orders)) {
+            foreach ($sort_orders as $order) {
+                if (isset($order['current']) && true === $order['current']) {
+                    $sort_selected = $order['label'];
+                    break;
+                }
+            }
+        }
+        $searchVariables = [
+            'result' => $result,
+            'label' => $this->getListingLabel(),
+            'products' => $products,
+            'sort_orders' => $sort_orders,
+            'sort_selected' => $sort_selected,
+            'pagination' => $pagination,
+            'rendered_facets' => $rendered_facets,
+            'rendered_active_filters' => $rendered_active_filters,
+            'js_enabled' => $this->ajax,
+            'current_url' => $this->updateQueryString([
+                'q' => $result->getEncodedFacets(),
+            ]),
+        ];
+        Hook::exec('filterProductSearch', ['searchVariables' => &$searchVariables]);
+        Hook::exec('actionProductSearchAfter', $searchVariables);
+        return $searchVariables;
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function disablePriceControls(ProductSearchResult $result)
+    {
+        if ($result->getFacetCollection()) {
+            $filteredFacets = [];
+            
+            foreach ($result->getFacetCollection()->getFacets() as $facet) {
+                if ('price' === $facet->getType()) {
+                    continue;
+                }
+                $filteredFacets[] = $facet;
+            }
+            $result->getFacetCollection()->setFacets($filteredFacets);
+        }
+        if ($result->getAvailableSortOrders()) {
+            $filteredOrders = [];
+            
+            foreach ($result->getAvailableSortOrders() as $sortOrder) {
+                if ('price' === $sortOrder->getField()) {
+                    continue;
+                }
+                $filteredOrders[] = $sortOrder;
+            }
+            $result->setAvailableSortOrders($filteredOrders);
+        }
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getTemplateVarPagination(
+        ProductSearchQuery $query,
+        ProductSearchResult $result
+    ) {
+        $pagination = new Pagination();
+        $pagination
+            ->setPage($query->getPage())
+            ->setPagesCount(
+                (int) ceil($result->getTotalProductsCount() / $query->getResultsPerPage())
+            )
+        ;
+        $totalItems = $result->getTotalProductsCount();
+        $itemsShownFrom = ($query->getResultsPerPage() * ($query->getPage() - 1)) + 1;
+        $itemsShownTo = $query->getResultsPerPage() * $query->getPage();
+        $pages = array_map(function ($link) {
+            $link['url'] = $this->updateQueryString([
+                'page' => $link['page'] > 1 ? $link['page'] : null,
+            ]);
+            return $link;
+        }, $pagination->buildLinks());
+        $pages = array_filter($pages, function ($page) use ($pagination) {
+            if ('previous' === $page['type'] && 1 === $pagination->getPage()) {
+                return false;
+            }
+            if ('next' === $page['type'] && $pagination->getPagesCount() === $pagination->getPage()) {
+                return false;
+            }
+            return true;
+        });
+        return [
+            'total_items' => $totalItems,
+            'items_shown_from' => $itemsShownFrom,
+            'items_shown_to' => ($itemsShownTo <= $totalItems) ? $itemsShownTo : $totalItems,
+            'current_page' => $pagination->getPage(),
+            'pages_count' => $pagination->getPagesCount(),
+            'pages' => $pages,
+            'should_be_displayed' => (count($pagination->buildLinks()) > 3),
+        ];
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getTemplateVarSortOrders(array $sortOrders, $currentSortOrderURLParameter)
+    {
+        return array_map(function ($sortOrder) use ($currentSortOrderURLParameter) {
+            $order = $sortOrder->toArray();
+            $order['current'] = $order['urlParameter'] === $currentSortOrderURLParameter;
+            $order['url'] = $this->updateQueryString([
+                'order' => $order['urlParameter'],
+                'page' => null,
+            ]);
+            return $order;
+        }, $sortOrders);
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getAjaxProductSearchVariables()
+    {
+        $search = $this->getProductSearchVariables();
+        $rendered_products_top = $this->render('catalog/_partials/products-top', ['listing' => $search]);
+        $rendered_products = $this->render('catalog/_partials/products', ['listing' => $search]);
+        $rendered_products_bottom = $this->render('catalog/_partials/products-bottom', ['listing' => $search]);
+        $data = array_merge(
+            [
+                'rendered_products_top' => $rendered_products_top,
+                'rendered_products' => $rendered_products,
+                'rendered_products_bottom' => $rendered_products_bottom,
+            ],
+            $search
+        );
+        if (!empty($data['products']) && is_array($data['products'])) {
+            $data['products'] = $this->prepareProductArrayForAjaxReturn($data['products']);
+        }
+        return $data;
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function prepareProductArrayForAjaxReturn(array $products)
+    {
+        $filter = $this->get('prestashop.core.filter.front_end_object.search_result_product_collection');
+        return $filter->filter($products);
+    }
+    
+    /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+	protected function doProductSearchRefer($template, $params = [], $locale = null)
+    {
+            $variables = $this->getProductSearchVariables();
+            $this->context->smarty->assign([
+                'listing' => $variables,
+            ]);
+            $this->setTemplate($template, $params, $locale);
+    }
+    abstract /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    public function getListingLabel();
+    
+    abstract /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getProductSearchQuery();
+    
+    abstract /*
+    * module: modulereference
+    * date: 2021-10-13 06:52:00
+    * version: 1.0.0
+    */
+    protected function getDefaultProductSearchProvider();
+}

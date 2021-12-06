@@ -1,0 +1,163 @@
+*ERROR* 	v1.7.7.3	2021/10/19 - 04:26:23: Operand should contain 1 column(s)&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name ,( SELECT * FROM ps_product_numbers pn LEFT JOIN ps_product ps ON pn.id_product = ps.id_product WHERE pn.article_number LIKE &#039;%8002259%&#039;) position,
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						&quot;2021-10-19 00:00:00&quot;,
+						INTERVAL 20 DAY
+					)
+				) &gt; 0 new, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity, IFNULL(product_attribute_shop.`id_product_attribute`,0) id_product_attribute
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_product_attribute_shop` product_attribute_shop FORCE INDEX (id_product)
+				    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop=1)
+				 LEFT JOIN ps_stock_available stock
+            ON (stock.id_product = `p`.id_product AND stock.id_product_attribute = 0 AND stock.id_shop = 1  AND stock.id_shop_group = 0  )
+				LEFT JOIN `ps_manufacturer` m FORCE INDEX (PRIMARY)
+				    ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `ps_image_shop` image_shop FORCE INDEX (id_product)
+					ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=1)
+				LEFT JOIN `ps_image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = 1)
+				WHERE p.`id_product`  IN (3,4,5) 
+				GROUP BY product_shop.id_product
+				ORDER BY  position desc
+				LIMIT 0,12&lt;/pre&gt; at line 769 in file classes/db/Db.php
+*ERROR* 	v1.7.7.3	2021/10/19 - 05:05:49: Unknown column &#039;position&#039; in &#039;order clause&#039;&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name ,
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						&quot;2021-10-19 00:00:00&quot;,
+						INTERVAL 20 DAY
+					)
+				) &gt; 0 new, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity, IFNULL(product_attribute_shop.`id_product_attribute`,0) id_product_attribute
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_product_attribute_shop` product_attribute_shop FORCE INDEX (id_product)
+				    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop=1)
+				 LEFT JOIN ps_stock_available stock
+            ON (stock.id_product = `p`.id_product AND stock.id_product_attribute = 0 AND stock.id_shop = 1  AND stock.id_shop_group = 0  )
+				LEFT JOIN `ps_manufacturer` m FORCE INDEX (PRIMARY)
+				    ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `ps_image_shop` image_shop FORCE INDEX (id_product)
+					ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=1)
+				LEFT JOIN `ps_image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = 1)
+LEFT JOIN ps_product_numbers pn ON p.id_product = pn.id_product
+				WHERE p.`id_product`  IN (3,4,5) 
+ AND pn.article_number LIKE &#039;%8002259%&#039;
+				GROUP BY product_shop.id_product
+				ORDER BY  position desc
+				LIMIT 0,12&lt;/pre&gt; at line 769 in file classes/db/Db.php
+*ERROR* 	v1.7.7.3	2021/10/19 - 05:17:32: Unknown column &#039;position&#039; in &#039;order clause&#039;&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name ,
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						&quot;2021-10-19 00:00:00&quot;,
+						INTERVAL 20 DAY
+					)
+				) &gt; 0 new, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity, IFNULL(product_attribute_shop.`id_product_attribute`,0) id_product_attribute
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_product_attribute_shop` product_attribute_shop FORCE INDEX (id_product)
+				    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop=1)
+				 LEFT JOIN ps_stock_available stock
+            ON (stock.id_product = `p`.id_product AND stock.id_product_attribute = 0 AND stock.id_shop = 1  AND stock.id_shop_group = 0  )
+				LEFT JOIN `ps_manufacturer` m FORCE INDEX (PRIMARY)
+				    ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `ps_image_shop` image_shop FORCE INDEX (id_product)
+					ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=1)
+				LEFT JOIN `ps_image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = 1)
+LEFT JOIN ps_product_numbers pn ON p.id_product = pn.id_product
+				WHERE p.`id_product`  IN (3,4,5) 
+ AND pn.article_number LIKE &#039;%8002259%&#039;
+				GROUP BY product_shop.id_product
+				ORDER BY  position desc
+				LIMIT 0,12&lt;/pre&gt; at line 769 in file classes/db/Db.php
+*ERROR* 	v1.7.7.3	2021/10/19 - 05:54:34: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near &#039;AND pn.article_number LIKE &#039;%8002259%&#039;
+				GROUP BY product_shop.id_product
+				&#039; at line 29&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name ,( SELECT SUM(weight) FROM ps_search_word sw LEFT JOIN ps_search_index si ON sw.id_word = si.id_word WHERE sw.id_lang = 1 AND sw.id_shop = 1 AND si.id_product = p.id_product AND (sw.word LIKE &#039;80x120cm&#039;) ) position,
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						&quot;2021-10-19 00:00:00&quot;,
+						INTERVAL 20 DAY
+					)
+				) &gt; 0 new, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity, IFNULL(product_attribute_shop.`id_product_attribute`,0) id_product_attribute
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_product_attribute_shop` product_attribute_shop FORCE INDEX (id_product)
+				    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop=1)
+				 LEFT JOIN ps_stock_available stock
+            ON (stock.id_product = `p`.id_product AND stock.id_product_attribute = 0 AND stock.id_shop = 1  AND stock.id_shop_group = 0  )
+				LEFT JOIN `ps_manufacturer` m FORCE INDEX (PRIMARY)
+				    ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `ps_image_shop` image_shop FORCE INDEX (id_product)
+					ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=1)
+							LEFT JOIN `ps_image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = 1)
+LEFT JOIN ps_product_numbers pn ON (p.id_product = pn.id_product) 
+				WHERE 
+ AND pn.article_number LIKE &#039;%8002259%&#039;
+				GROUP BY product_shop.id_product
+				ORDER BY  position desc
+				LIMIT 0,12&lt;/pre&gt; at line 769 in file classes/db/Db.php
+*ERROR* 	v1.7.7.3	2021/10/19 - 06:31:47: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near &#039;AND pn.article_number LIKE &#039;%8002258%&#039;
+				GROUP BY product_shop.id_product
+				&#039; at line 29&lt;br /&gt;&lt;br /&gt;&lt;pre&gt;SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name ,( SELECT SUM(weight) FROM ps_search_word sw LEFT JOIN ps_search_index si ON sw.id_word = si.id_word WHERE sw.id_lang = 1 AND sw.id_shop = 1 AND si.id_product = p.id_product AND (sw.word LIKE &#039;80x120cm&#039;) ) position,
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						&quot;2021-10-19 00:00:00&quot;,
+						INTERVAL 20 DAY
+					)
+				) &gt; 0 new, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity, IFNULL(product_attribute_shop.`id_product_attribute`,0) id_product_attribute
+				FROM ps_product p
+				 INNER JOIN ps_product_shop product_shop
+        ON (product_shop.id_product = p.id_product AND product_shop.id_shop = 1)
+				INNER JOIN `ps_product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = 1 AND pl.id_shop = 1 
+				)
+				LEFT JOIN `ps_product_attribute_shop` product_attribute_shop FORCE INDEX (id_product)
+				    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop=1)
+				 LEFT JOIN ps_stock_available stock
+            ON (stock.id_product = `p`.id_product AND stock.id_product_attribute = 0 AND stock.id_shop = 1  AND stock.id_shop_group = 0  )
+				LEFT JOIN `ps_manufacturer` m FORCE INDEX (PRIMARY)
+				    ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `ps_image_shop` image_shop FORCE INDEX (id_product)
+					ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=1)
+				LEFT JOIN `ps_image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = 1)
+LEFT JOIN ps_product_numbers pn ON p.id_product = pn.id_product
+				WHERE 
+ AND pn.article_number LIKE &#039;%8002258%&#039;
+				GROUP BY product_shop.id_product
+				ORDER BY  position desc
+				LIMIT 0,12&lt;/pre&gt; at line 769 in file classes/db/Db.php
+*ERROR* 	v1.7.7.3	2021/10/19 - 07:09:00: No template found for view/search at line 68 in file classes/Smarty/TemplateFinder.php
