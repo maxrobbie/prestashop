@@ -90,3 +90,4 @@ Essential links about PrestaShop:
 
 
                        PrestaShop - WeCommerce Is Better eCommerce
+Changes Text
